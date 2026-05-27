@@ -61,10 +61,12 @@ const stateCopy = {
 };
 
 export function WatchExperience({ stream, eventSlug, poster = "/assets/images/banner/videos_banner.jpg" }: Props) {
-  const [paywallOpen, setPaywallOpen] = useState(Boolean(stream.access.requires_payment));
   const playbackUrl = stream.stream?.hls_url ?? stream.stream?.playback_url ?? stream.stream?.replay_url;
   const embedUrl = stream.stream?.embed_url;
-  const isLive = stream.status === "live" && Boolean(playbackUrl || embedUrl);
+  const hasPlayableSource = Boolean(playbackUrl || embedUrl);
+  const previewPlaybackOpen = Boolean(stream.access.preview_active && stream.access.can_watch_live && hasPlayableSource);
+  const canShowPlayer = hasPlayableSource && (stream.status === "live" || previewPlaybackOpen || stream.access.can_watch_live || stream.access.can_watch_replay);
+  const [paywallOpen, setPaywallOpen] = useState(Boolean(stream.access.requires_payment && !previewPlaybackOpen && !stream.access.can_watch_live));
   const reason = stream.access.reason;
   const copy = stateCopy[reason as keyof typeof stateCopy] ?? stateCopy[stream.status as keyof typeof stateCopy] ?? stateCopy.scheduled;
   const Icon = copy.icon;
@@ -79,9 +81,9 @@ export function WatchExperience({ stream, eventSlug, poster = "/assets/images/ba
       ) : null}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_380px]">
         <div className="border border-white/10 bg-black">
-          {isLive && embedUrl ? (
+          {canShowPlayer && embedUrl ? (
             <EmbedLivePlayer src={embedUrl} title={stream.stream?.title ?? "Nara Promotionz Live"} />
-          ) : isLive ? (
+          ) : canShowPlayer ? (
             <HlsPlayer src={playbackUrl} poster={poster} title={stream.stream?.title ?? "Nara Promotionz Live"} live={stream.status === "live"} />
           ) : (
             <div className="flex aspect-video items-center justify-center bg-[#090909] p-8 text-center">
@@ -105,14 +107,14 @@ export function WatchExperience({ stream, eventSlug, poster = "/assets/images/ba
           )}
         </div>
 
-        {isLive ? (
+        {canShowPlayer ? (
           <LiveChatPanel eventSlug={eventSlug} />
         ) : (
           <aside className="grid content-start gap-4">
             <div className="info-panel">
               <Radio size={22} className="text-[#e1252b]" />
               <h3>Watch Status</h3>
-              <p>{stream.access.message ?? (isLive ? "The broadcast is live. Settle in and enjoy the action." : copy.body)}</p>
+              <p>{stream.access.message ?? (canShowPlayer ? "The broadcast is open. Settle in and enjoy the action." : copy.body)}</p>
             </div>
             <div className="info-panel">
               <Ticket size={22} className="text-[#d7b46a]" />
