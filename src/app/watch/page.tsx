@@ -17,16 +17,23 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
 
   return (
     <div className="bg-black">
-      <section className="border-b border-white/10 bg-[#0b0b0b]">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <p className="section-kicker">Watch</p>
-          <h1 className="section-title-tight">Your Nara Promotionz live room.</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-400">
-            Step into the broadcast, follow the fight card, and return for official replays when your ticket includes watch access.
-          </p>
+      <WatchRoomClient eventSlug={eventSlug} />
+      <section className="border-t border-white/10 bg-[#0b0b0b]">
+        <div className="mx-auto grid max-w-7xl gap-4 px-4 py-8 sm:px-6 md:grid-cols-3 lg:px-8">
+          <div>
+            <p className="section-kicker">Fight Card</p>
+            <p className="mt-2 text-sm text-zinc-400">Bouts, corners, and results in one place.</p>
+          </div>
+          <div>
+            <p className="section-kicker">Replay</p>
+            <p className="mt-2 text-sm text-zinc-400">Return after the final bell.</p>
+          </div>
+          <div>
+            <p className="section-kicker">Support</p>
+            <p className="mt-2 text-sm text-zinc-400">Ticket help stays close to the stream.</p>
+          </div>
         </div>
       </section>
-      <WatchRoomClient eventSlug={eventSlug} />
     </div>
   );
 }

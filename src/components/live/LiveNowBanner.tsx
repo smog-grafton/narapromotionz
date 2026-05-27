@@ -1,16 +1,38 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Radio, Ticket } from "lucide-react";
+import { useEffect, useState } from "react";
 import { getActiveLiveEvents } from "@/services/api";
+import type { Event } from "@/types/platform";
 
-export async function LiveNowBanner() {
-  if (process.env.NEXT_PUBLIC_ENABLE_LIVE_BANNER === "false") {
-    return null;
-  }
+export function LiveNowBanner() {
+  const pathname = usePathname();
+  const [event, setEvent] = useState<Event | null>(null);
+  const isPlayerRoute = pathname === "/watch" || pathname.startsWith("/watch/");
 
-  const events = await getActiveLiveEvents(1);
-  const event = events[0];
+  useEffect(() => {
+    let mounted = true;
 
-  if (!event) {
+    if (process.env.NEXT_PUBLIC_ENABLE_LIVE_BANNER === "false" || isPlayerRoute) {
+      return;
+    }
+
+    getActiveLiveEvents(1)
+      .then((events) => {
+        if (mounted) setEvent(events[0] ?? null);
+      })
+      .catch(() => {
+        if (mounted) setEvent(null);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [isPlayerRoute, pathname]);
+
+  if (!event || isPlayerRoute) {
     return null;
   }
 

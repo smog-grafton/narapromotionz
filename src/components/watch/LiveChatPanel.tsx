@@ -1,13 +1,16 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Loader2, MessageSquare, Pin, Send } from "lucide-react";
+import { Loader2, MessageSquare, Pin, Send, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getLiveStreamComments, postLiveStreamComment } from "@/services/api";
+import { cn } from "@/lib/utils";
 import type { LiveStreamCommentsPayload } from "@/types/platform";
 
 type Props = {
   eventSlug: string;
+  className?: string;
+  onClose?: () => void;
 };
 
 const emptyPayload: LiveStreamCommentsPayload = {
@@ -21,7 +24,7 @@ const emptyPayload: LiveStreamCommentsPayload = {
   comments: [],
 };
 
-export function LiveChatPanel({ eventSlug }: Props) {
+export function LiveChatPanel({ eventSlug, className, onClose }: Props) {
   const { token, user } = useAuth();
   const [payload, setPayload] = useState<LiveStreamCommentsPayload>(emptyPayload);
   const [body, setBody] = useState("");
@@ -75,11 +78,18 @@ export function LiveChatPanel({ eventSlug }: Props) {
   }
 
   return (
-    <aside className="flex max-h-[620px] min-h-[420px] flex-col border border-white/10 bg-[#0d0d0d] lg:sticky lg:top-24">
+    <aside className={cn("flex max-h-[620px] min-h-[420px] flex-col border border-white/10 bg-[#0d0d0d] lg:sticky lg:top-24", className)}>
       <div className="border-b border-white/10 p-4">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="text-[#e1252b]" size={20} />
-          <h2 className="text-sm font-black uppercase tracking-[0.18em] text-white">Live Chat</h2>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="text-[#e1252b]" size={20} />
+            <h2 className="text-sm font-black uppercase tracking-[0.18em] text-white">Fight Chat</h2>
+          </div>
+          {onClose ? (
+            <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center border border-white/10 text-zinc-300 transition hover:border-[#e1252b] hover:text-white" aria-label="Close fight chat">
+              <X size={16} />
+            </button>
+          ) : null}
         </div>
         {payload.settings.pinned_announcement ? (
           <p className="mt-3 border border-[#d7b46a]/30 bg-[#d7b46a]/10 p-3 text-xs font-bold leading-5 text-[#d7b46a]">

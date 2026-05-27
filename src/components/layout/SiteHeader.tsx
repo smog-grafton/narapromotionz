@@ -227,9 +227,9 @@ export function SiteHeader() {
               </div>
             ) : null}
           </div>
-          <Link href="/tickets" className="primary-button">
+          <Link href={isAuthenticated ? "/dashboard/tickets" : "/tickets"} className="primary-button">
             <Ticket size={18} />
-            Buy Ticket
+            {isAuthenticated ? "My Tickets" : "Buy Ticket"}
           </Link>
         </div>
 
@@ -303,9 +303,9 @@ export function SiteHeader() {
             ))}
           </nav>
           <div className="mt-7 grid gap-3">
-            <Link href="/tickets" className="primary-button justify-center" onClick={() => setOpen(false)}>
+            <Link href={isAuthenticated ? "/dashboard/tickets" : "/tickets"} className="primary-button justify-center" onClick={() => setOpen(false)}>
               <Ticket size={18} />
-              Buy Ticket
+              {isAuthenticated ? "My Tickets" : "Buy Ticket"}
             </Link>
             <Link href={accountHref} className="secondary-button justify-center" onClick={() => setOpen(false)}>
               {isAuthenticated ? "My Account" : "Sign in"}

@@ -1,17 +1,49 @@
 "use client";
 
-import Link from "next/link";
-import { Maximize2, Radio } from "lucide-react";
+import { useRef, useState } from "react";
+import { Maximize2, MessageSquare, Pause, Play, Volume2, VolumeX } from "lucide-react";
 
 type Props = {
   src: string;
   title: string;
+  chatOpen?: boolean;
+  onToggleChat?: () => void;
 };
 
-export function EmbedLivePlayer({ src, title }: Props) {
+export function EmbedLivePlayer({ src, title, chatOpen, onToggleChat }: Props) {
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<HTMLDivElement>(null);
+  const [playing, setPlaying] = useState(true);
+  const [muted, setMuted] = useState(true);
+
+  function command(func: string, args: unknown[] = []) {
+    frameRef.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func, args }), "*");
+  }
+
+  function togglePlay() {
+    const nextPlaying = !playing;
+    command(nextPlaying ? "playVideo" : "pauseVideo");
+    setPlaying(nextPlaying);
+  }
+
+  function toggleMute() {
+    const nextMuted = !muted;
+    command(nextMuted ? "mute" : "unMute");
+    setMuted(nextMuted);
+  }
+
+  async function enterFullscreen() {
+    await playerRef.current?.requestFullscreen?.();
+  }
+
   return (
-    <div className="relative aspect-video w-full overflow-hidden bg-black" onContextMenu={(event) => event.preventDefault()}>
+    <div
+      ref={playerRef}
+      className="group/player relative aspect-video w-full overflow-hidden bg-black fullscreen:aspect-auto fullscreen:h-screen fullscreen:w-screen"
+      onContextMenu={(event) => event.preventDefault()}
+    >
       <iframe
+        ref={frameRef}
         src={src}
         title={title}
         className="absolute inset-0 h-full w-full"
@@ -31,16 +63,29 @@ export function EmbedLivePlayer({ src, title }: Props) {
       <div className="absolute bottom-3 left-3 right-3 z-30 flex items-center justify-between gap-3 sm:bottom-5 sm:left-5 sm:right-5">
         <div className="pointer-events-none min-w-0">
           <p className="clamp-1 text-xs font-black uppercase tracking-[0.16em] text-[#d7b46a]">{title}</p>
-          <p className="mt-1 hidden text-xs text-zinc-300 sm:block">You are watching inside the official Nara Promotionz live room.</p>
+          <p className="mt-1 hidden text-xs text-zinc-300 sm:block">Official Nara Promotionz broadcast.</p>
         </div>
-        <Link href="/watch" className="pointer-events-auto inline-flex shrink-0 items-center gap-2 border border-white/15 bg-black/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-white transition hover:border-[#e1252b]">
-          <Radio size={13} />
-          Live room
-        </Link>
-        <button type="button" className="pointer-events-auto hidden shrink-0 items-center gap-2 border border-white/15 bg-black/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-white transition hover:border-[#e1252b] sm:inline-flex" onClick={() => document.documentElement.requestFullscreen?.()}>
-          <Maximize2 size={13} />
-          Fullscreen
-        </button>
+        <div className="pointer-events-auto flex shrink-0 items-center gap-2">
+          <button type="button" className="grid h-11 w-11 place-items-center border border-white/15 bg-black/80 text-white transition hover:border-[#e1252b]" onClick={togglePlay} aria-label={playing ? "Pause stream" : "Play stream"}>
+            {playing ? <Pause size={17} /> : <Play size={17} />}
+          </button>
+          <button type="button" className="grid h-11 w-11 place-items-center border border-white/15 bg-black/80 text-white transition hover:border-[#e1252b]" onClick={toggleMute} aria-label={muted ? "Unmute stream" : "Mute stream"}>
+            {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
+          </button>
+          {onToggleChat ? (
+            <button
+              type="button"
+              className={`grid h-11 w-11 place-items-center border bg-black/80 text-white transition hover:border-[#e1252b] ${chatOpen ? "border-[#e1252b]" : "border-white/15"}`}
+              onClick={onToggleChat}
+              aria-label={chatOpen ? "Hide fight chat" : "Show fight chat"}
+            >
+              <MessageSquare size={17} />
+            </button>
+          ) : null}
+          <button type="button" className="grid h-11 w-11 place-items-center border border-white/15 bg-black/80 text-white transition hover:border-[#e1252b]" onClick={enterFullscreen} aria-label="Fullscreen player">
+            <Maximize2 size={17} />
+          </button>
+        </div>
       </div>
     </div>
   );

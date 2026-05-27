@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Clock, Lock, Radio, RefreshCw, Ticket } from "lucide-react";
+import { Clock, Lock, MessageSquare, Radio, RefreshCw, ShieldCheck, Ticket } from "lucide-react";
 import { EmbedLivePlayer } from "@/components/watch/EmbedLivePlayer";
 import { HlsPlayer } from "@/components/watch/HlsPlayer";
 import { InstantPayModal } from "@/components/watch/InstantPayModal";
@@ -67,24 +67,47 @@ export function WatchExperience({ stream, eventSlug, poster = "/assets/images/ba
   const previewPlaybackOpen = Boolean(stream.access.preview_active && stream.access.can_watch_live && hasPlayableSource);
   const canShowPlayer = hasPlayableSource && (stream.status === "live" || previewPlaybackOpen || stream.access.can_watch_live || stream.access.can_watch_replay);
   const [paywallOpen, setPaywallOpen] = useState(Boolean(stream.access.requires_payment && !previewPlaybackOpen && !stream.access.can_watch_live));
+  const [chatOpen, setChatOpen] = useState(false);
   const reason = stream.access.reason;
   const copy = stateCopy[reason as keyof typeof stateCopy] ?? stateCopy[stream.status as keyof typeof stateCopy] ?? stateCopy.scheduled;
   const Icon = copy.icon;
+  const showPreviewPrompt = Boolean(stream.access.preview_active && stream.access.access_type === "free_preview" && !stream.access.user_has_ticket);
+  const accessLabel = stream.access.user_has_ticket || stream.access.access_type === "paid_ticket" ? "Pass active" : stream.access.access_type === "free_preview" ? "Free preview" : stream.status === "live" ? "Live now" : "Watch room";
 
   return (
     <section className="section-shell">
       <InstantPayModal eventSlug={eventSlug} access={stream.access} open={paywallOpen} onClose={() => setPaywallOpen(false)} />
-      {stream.access.preview_active ? (
-        <div className="mb-4 border border-[#d7b46a]/40 bg-[#d7b46a]/10 p-4 text-sm font-bold leading-6 text-[#d7b46a]">
-          {stream.access.message ?? "Free preview is live. Buy your fight-night pass to stay connected for the main card."}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-2 border border-[#e1252b]/50 bg-[#e1252b]/10 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-white">
+          <Radio size={14} />
+          {stream.stream?.title ?? "Nara Promotionz Live"}
+        </span>
+        <span className="inline-flex items-center gap-2 border border-[#d7b46a]/40 bg-[#d7b46a]/10 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#d7b46a]">
+          <ShieldCheck size={14} />
+          {accessLabel}
+        </span>
+      </div>
+      {showPreviewPrompt ? (
+        <div className="mb-4 border border-[#d7b46a]/40 bg-[#d7b46a]/10 p-3 text-xs font-black uppercase tracking-[0.12em] text-[#d7b46a]">
+          Free preview. Stay for the main card with a fight-night pass.
         </div>
       ) : null}
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_380px]">
-        <div className="border border-white/10 bg-black">
+      <div className="grid gap-6">
+        <div className="relative border border-white/10 bg-black">
           {canShowPlayer && embedUrl ? (
-            <EmbedLivePlayer src={embedUrl} title={stream.stream?.title ?? "Nara Promotionz Live"} />
+            <EmbedLivePlayer src={embedUrl} title={stream.stream?.title ?? "Nara Promotionz Live"} chatOpen={chatOpen} onToggleChat={() => setChatOpen((value) => !value)} />
           ) : canShowPlayer ? (
-            <HlsPlayer src={playbackUrl} poster={poster} title={stream.stream?.title ?? "Nara Promotionz Live"} live={stream.status === "live"} />
+            <div className="relative">
+              <HlsPlayer src={playbackUrl} poster={poster} title={stream.stream?.title ?? "Nara Promotionz Live"} live={stream.status === "live"} />
+              <button
+                type="button"
+                onClick={() => setChatOpen((value) => !value)}
+                className="absolute bottom-4 right-4 z-30 grid h-11 w-11 place-items-center border border-white/15 bg-black/80 text-white transition hover:border-[#e1252b]"
+                aria-label={chatOpen ? "Hide fight chat" : "Show fight chat"}
+              >
+                <MessageSquare size={17} />
+              </button>
+            </div>
           ) : (
             <div className="flex aspect-video items-center justify-center bg-[#090909] p-8 text-center">
               <div className="max-w-lg">
@@ -105,29 +128,44 @@ export function WatchExperience({ stream, eventSlug, poster = "/assets/images/ba
               </div>
             </div>
           )}
+          {canShowPlayer && chatOpen ? (
+            <div className="absolute inset-0 z-40 flex items-end justify-end bg-black/25 sm:items-stretch">
+              <LiveChatPanel
+                eventSlug={eventSlug}
+                onClose={() => setChatOpen(false)}
+                className="h-[82%] min-h-0 w-full max-w-none border-b-0 border-l border-r-0 border-t bg-[#0b0b0b]/95 shadow-2xl backdrop-blur sm:h-full sm:w-[390px] sm:border-b sm:border-r"
+              />
+            </div>
+          ) : null}
         </div>
 
-        {canShowPlayer ? (
-          <LiveChatPanel eventSlug={eventSlug} />
-        ) : (
-          <aside className="grid content-start gap-4">
-            <div className="info-panel">
-              <Radio size={22} className="text-[#e1252b]" />
-              <h3>Watch Status</h3>
-              <p>{stream.access.message ?? (canShowPlayer ? "The broadcast is open. Settle in and enjoy the action." : copy.body)}</p>
-            </div>
-            <div className="info-panel">
-              <Ticket size={22} className="text-[#d7b46a]" />
-              <h3>Fight-Night Pass</h3>
-              <p>Your Nara Promotionz ticket keeps your event access, live room, and replay path connected to your account.</p>
-              {stream.access.requires_payment ? (
-                <button type="button" onClick={() => setPaywallOpen(true)} className="mini-button w-fit">
-                  Unlock access
-                </button>
-              ) : null}
-            </div>
-          </aside>
-        )}
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="info-panel">
+            <Radio size={20} className="text-[#e1252b]" />
+            <h3>Status</h3>
+            <p>{canShowPlayer ? (stream.status === "live" ? "Live now." : "Stream open.") : copy.title}</p>
+          </div>
+          <div className="info-panel">
+            <Ticket size={20} className="text-[#d7b46a]" />
+            <h3>Access</h3>
+            <p>{stream.access.user_has_ticket ? "Your pass is active." : showPreviewPrompt ? "Preview is open." : stream.access.requires_payment ? "Pass required." : "Ready."}</p>
+            {stream.access.requires_payment && !stream.access.user_has_ticket ? (
+              <button type="button" onClick={() => setPaywallOpen(true)} className="mini-button w-fit">
+                Unlock
+              </button>
+            ) : null}
+          </div>
+          <div className="info-panel">
+            <MessageSquare size={20} className="text-zinc-300" />
+            <h3>Chat</h3>
+            <p>Fight chat opens over the player.</p>
+            {canShowPlayer ? (
+              <button type="button" onClick={() => setChatOpen(true)} className="mini-button w-fit">
+                Open chat
+              </button>
+            ) : null}
+          </div>
+        </div>
       </div>
     </section>
   );
