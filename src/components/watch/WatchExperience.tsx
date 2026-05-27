@@ -44,6 +44,20 @@ const stateCopy = {
     href: "/watch",
     icon: RefreshCw,
   },
+  stream_unavailable: {
+    title: "The live room is getting ready",
+    body: "The next Nara Promotionz broadcast will open here as soon as the stream is ready.",
+    cta: "View events",
+    href: "/events",
+    icon: Radio,
+  },
+  unavailable: {
+    title: "The live room is getting ready",
+    body: "The next Nara Promotionz broadcast will open here as soon as the stream is ready.",
+    cta: "View events",
+    href: "/events",
+    icon: Radio,
+  },
 };
 
 export function WatchExperience({ stream, eventSlug, poster = "/assets/images/banner/videos_banner.jpg" }: Props) {

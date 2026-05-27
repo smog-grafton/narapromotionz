@@ -94,7 +94,19 @@ export async function getStream(eventSlug: string, token?: string): Promise<Stre
   try {
     return await apiGet<StreamPayload>(`/events/${eventSlug}/stream`, token);
   } catch {
-    return fallbackStream;
+    return {
+      ...fallbackStream,
+      status: "unavailable",
+      access: {
+        ...fallbackStream.access,
+        authenticated: Boolean(token),
+        reason: token ? "stream_unavailable" : "login_required",
+        requires_payment: !token,
+        message: token
+          ? "We could not open this stream yet. Check the event details or try again in a moment."
+          : "Sign in to access your tickets, live events, replays, and fight-night rewards.",
+      },
+    };
   }
 }
 

@@ -69,9 +69,9 @@ export function MediaGrid({ news = [], breaking = [], trending = [], previews = 
       <div className="hidden gap-6 md:grid lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="grid gap-6">
           {lead ? <NewsCard article={lead} variant="feature" /> : null}
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-4">
             {topStories.map((article) => (
-              <NewsCard key={article.id} article={article} />
+              <NewsCard key={article.id} article={article} variant="row" />
             ))}
           </div>
         </div>

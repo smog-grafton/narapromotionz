@@ -241,10 +241,6 @@ a {
   }
 
   .media-row {
-    @apply grid;
-  }
-
-  .media-row > div:first-child {
-    @apply h-40 w-full;
+    @apply flex gap-3;
   }
 }

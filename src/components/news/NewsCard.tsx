@@ -18,16 +18,20 @@ export function NewsCard({ article, variant = "compact", priority = false }: Pro
   if (variant === "row") {
     return (
       <Link href={`/news/${article.slug}`} className="media-row group">
-        <div className="relative h-28 w-36 shrink-0 overflow-hidden bg-[#171717]">
-          <SafeImage src={article.featured_image_url ?? article.image_url} fallbackSrc="/assets/images/events/event3.webp" alt={article.title} fill sizes="144px" className="object-cover transition duration-500 group-hover:scale-105" />
+        <div className="relative h-28 w-32 shrink-0 overflow-hidden bg-[#171717] sm:h-32 sm:w-44">
+          <SafeImage src={article.featured_image_url ?? article.image_url} fallbackSrc="/assets/images/events/event3.webp" alt={article.title} fill sizes="(min-width: 640px) 176px, 128px" className="object-cover transition duration-500 group-hover:scale-105" />
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-[#d7b46a]">
             <Newspaper size={13} />
             {articleCategory(article)}
           </p>
           <h3 className="clamp-2 mt-2 text-lg font-black uppercase leading-tight text-white">{article.title}</h3>
+          <p className="clamp-2 mt-2 text-sm leading-6 text-zinc-400 max-sm:hidden">{stripHtml(article.excerpt)}</p>
           <p className="mt-2 text-xs uppercase tracking-[0.12em] text-zinc-500">{formatDate(article.published_at)} · {article.reading_time ?? 3} min read</p>
+          <span className="mt-3 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.14em] text-[#d7b46a]">
+            Read more <ArrowUpRight size={13} />
+          </span>
         </div>
       </Link>
     );

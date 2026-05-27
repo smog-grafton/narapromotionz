@@ -13,7 +13,7 @@ export const metadata = {
 
 export default async function WatchPage({ searchParams }: WatchPageProps) {
   const params = await searchParams;
-  const eventSlug = params.event ?? "fight-night-kampala";
+  const eventSlug = params.event;
 
   return (
     <div className="bg-black">

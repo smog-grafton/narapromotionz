@@ -4,16 +4,17 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { WatchExperience } from "@/components/watch/WatchExperience";
-import { getStream } from "@/services/api";
+import { getActiveLiveEvents, getEvents, getStream } from "@/services/api";
 import type { StreamPayload } from "@/types/platform";
 
 type Props = {
-  eventSlug: string;
+  eventSlug?: string;
 };
 
 export function WatchRoomClient({ eventSlug }: Props) {
   const { token, loading: authLoading } = useAuth();
   const [stream, setStream] = useState<StreamPayload | null>(null);
+  const [resolvedSlug, setResolvedSlug] = useState(eventSlug ?? "");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,10 +25,60 @@ export function WatchRoomClient({ eventSlug }: Props) {
 
       setLoading(true);
 
-      const payload = await getStream(eventSlug, token ?? undefined);
+      let slug = eventSlug;
+
+      if (!slug) {
+        const liveEvents = await getActiveLiveEvents(1).catch(() => []);
+        slug = liveEvents[0]?.slug;
+      }
+
+      if (!slug) {
+        const upcoming = await getEvents({ status: "upcoming", per_page: 1 }).catch(() => ({ data: [] }));
+        slug = upcoming.data[0]?.slug;
+      }
+
+      if (!slug) {
+        const anyEvent = await getEvents({ per_page: 1 }).catch(() => ({ data: [] }));
+        slug = anyEvent.data[0]?.slug;
+      }
+
+      if (!slug) {
+        if (!cancelled) {
+          setStream({
+            status: "unavailable",
+            access: {
+              authenticated: Boolean(token),
+              can_watch_live: false,
+              can_watch_replay: false,
+              reason: "stream_unavailable",
+              requires_payment: false,
+              message: "The next Nara Promotionz live room will appear here as soon as a fight night is ready.",
+            },
+            stream: null,
+          });
+          setResolvedSlug("");
+          setLoading(false);
+        }
+        return;
+      }
+
+      const payload = await getStream(slug, token ?? undefined);
+      const normalizedPayload = token && payload.access.reason === "login_required"
+        ? {
+            ...payload,
+            access: {
+              ...payload.access,
+              authenticated: true,
+              reason: "ticket_required",
+              requires_payment: true,
+              message: payload.access.message ?? "Choose a fight-night pass to unlock this live room.",
+            },
+          }
+        : payload;
 
       if (!cancelled) {
-        setStream(payload);
+        setStream(normalizedPayload);
+        setResolvedSlug(slug);
         setLoading(false);
       }
     }
@@ -53,5 +104,5 @@ export function WatchRoomClient({ eventSlug }: Props) {
     );
   }
 
-  return <WatchExperience stream={stream} eventSlug={eventSlug} />;
+  return <WatchExperience stream={stream} eventSlug={resolvedSlug || eventSlug || ""} />;
 }
