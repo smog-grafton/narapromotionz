@@ -264,7 +264,7 @@ export function SiteHeader() {
         <div
           ref={panelRef}
           className={cn(
-            "ml-auto min-h-screen w-[min(88vw,390px)] border-l border-white/10 bg-[#0b0b0b] px-5 py-5 transition-transform duration-200",
+            "ml-auto flex h-dvh w-[min(88vw,390px)] flex-col overflow-y-auto overscroll-contain border-l border-white/10 bg-[#0b0b0b] px-5 py-5 transition-transform duration-200",
             open ? "translate-x-0" : "translate-x-full",
           )}
         >

@@ -133,7 +133,7 @@ export function WatchExperience({ stream, eventSlug, poster = "/assets/images/ba
               <LiveChatPanel
                 eventSlug={eventSlug}
                 onClose={() => setChatOpen(false)}
-                className="h-[82%] min-h-0 w-full max-w-none border-b-0 border-l border-r-0 border-t bg-[#0b0b0b]/95 shadow-2xl backdrop-blur sm:h-full sm:w-[390px] sm:border-b sm:border-r"
+                className="h-[72%] min-h-0 w-full max-w-none border-b-0 border-l border-r-0 border-t bg-[#0b0b0b]/95 shadow-2xl backdrop-blur sm:h-full sm:w-[390px] sm:border-b sm:border-r"
               />
             </div>
           ) : null}
