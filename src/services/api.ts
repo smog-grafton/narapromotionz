@@ -110,6 +110,10 @@ export async function getStream(eventSlug: string, token?: string): Promise<Stre
   }
 }
 
+export async function getActiveStream(token?: string): Promise<{ event: Pick<Event, "id" | "name" | "slug"> | null; stream: StreamPayload }> {
+  return apiGet<{ event: Pick<Event, "id" | "name" | "slug"> | null; stream: StreamPayload }>("/live/stream", token);
+}
+
 export async function getPaymentGateways(): Promise<PaymentGateway[]> {
   return apiGet<PaymentGateway[]>("/payment-gateways");
 }
@@ -195,7 +199,7 @@ export async function getEvents(params: Record<string, string | number | undefin
 
 export async function getActiveLiveEvents(limit = 3): Promise<Event[]> {
   try {
-    return await apiGet<Event[]>(`/live/active?limit=${limit}`);
+    return await apiGet<Event[]>(`/live/active?limit=${limit}&summary=1`);
   } catch {
     return fallbackEvents.filter((event) => event.status === "live" || event.streaming?.status === "live").slice(0, limit);
   }

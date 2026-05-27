@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { WatchExperience } from "@/components/watch/WatchExperience";
-import { getActiveLiveEvents, getEvents, getStream } from "@/services/api";
+import { getActiveStream, getEvents, getStream } from "@/services/api";
 import type { StreamPayload } from "@/types/platform";
 
 type Props = {
@@ -28,8 +28,18 @@ export function WatchRoomClient({ eventSlug }: Props) {
       let slug = eventSlug;
 
       if (!slug) {
-        const liveEvents = await getActiveLiveEvents(1).catch(() => []);
-        slug = liveEvents[0]?.slug;
+        const active = await getActiveStream(token ?? undefined).catch(() => null);
+
+        if (active?.event && active.stream) {
+          if (!cancelled) {
+            setStream(active.stream);
+            setResolvedSlug(active.event?.slug ?? "");
+            setLoading(false);
+          }
+          return;
+        }
+
+        slug = active?.event?.slug;
       }
 
       if (!slug) {

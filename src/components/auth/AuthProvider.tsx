@@ -95,16 +95,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(storedToken);
         setUser(storedUser);
 
-        try {
-          const freshUser = await getMe(storedToken);
+        if (!cancelled) setLoading(false);
 
-          if (!cancelled) {
+        getMe(storedToken)
+          .then((freshUser) => {
+            if (cancelled) return;
+
             window.localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
             setUser(freshUser);
-          }
-        } catch {
-          if (!cancelled) clearSession();
-        }
+          })
+          .catch(() => {
+            if (!cancelled) clearSession();
+          });
+
+        return;
       }
 
       if (!cancelled) setLoading(false);

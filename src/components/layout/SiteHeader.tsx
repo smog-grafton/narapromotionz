@@ -3,11 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CreditCard, LayoutDashboard, LogOut, Menu, Ticket, UserCircle, X } from "lucide-react";
+import { CreditCard, LayoutDashboard, LogOut, Menu, Radio, Ticket, UserCircle, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { SafeImage } from "@/components/ui/SafeImage";
 import { cn } from "@/lib/utils";
+import { getActiveLiveEvents } from "@/services/api";
+import type { Event as PlatformEvent } from "@/types/platform";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -22,12 +24,14 @@ const navItems = [
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [liveEvent, setLiveEvent] = useState<PlatformEvent | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
   const previousPathRef = useRef(pathname);
   const { user, isAuthenticated, logout } = useAuth();
+  const liveHref = liveEvent ? `/watch?event=${liveEvent.slug}` : "/watch";
 
   const initials = user?.name
     ?.split(" ")
@@ -48,6 +52,30 @@ export function SiteHeader() {
     const closeTimer = window.setTimeout(() => setOpen(false), 0);
     return () => window.clearTimeout(closeTimer);
   }, [open, pathname]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (process.env.NEXT_PUBLIC_ENABLE_LIVE_BANNER === "false") {
+      return;
+    }
+
+    getActiveLiveEvents(1)
+      .then((events) => {
+        if (mounted) {
+          setLiveEvent(events[0] ?? null);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setLiveEvent(null);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (!open) {
@@ -118,6 +146,18 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          {liveEvent ? (
+            <Link
+              href={liveHref}
+              className="group flex h-12 items-center gap-2 border border-red-500/60 bg-red-600/10 px-4 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:bg-red-600"
+            >
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 bg-red-500" />
+              </span>
+              Live now
+            </Link>
+          ) : null}
           <div className="relative" ref={accountRef}>
             {isAuthenticated ? (
               <button
@@ -193,9 +233,24 @@ export function SiteHeader() {
           </Link>
         </div>
 
-        <button className="icon-button flex lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open}>
-          <Menu size={22} />
-        </button>
+        <div className="flex items-center gap-2 lg:hidden">
+          {liveEvent ? (
+            <Link
+              href={liveHref}
+              className="flex h-12 items-center gap-2 border border-red-500/70 bg-red-600 px-3 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-[0_0_24px_rgba(237,28,36,0.25)]"
+              aria-label={`Watch ${liveEvent.name} live`}
+            >
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping bg-white opacity-70" />
+                <span className="relative inline-flex h-2.5 w-2.5 bg-white" />
+              </span>
+              Live
+            </Link>
+          ) : null}
+          <button className="icon-button flex" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open}>
+            <Menu size={22} />
+          </button>
+        </div>
       </div>
 
       <div
@@ -220,6 +275,22 @@ export function SiteHeader() {
             </button>
           </div>
           <nav className="mt-8 grid gap-1">
+            {liveEvent ? (
+              <Link
+                href={liveHref}
+                onClick={() => setOpen(false)}
+                className="mb-2 flex items-center justify-between border border-red-500/70 bg-red-600 px-4 py-4 text-sm font-black uppercase tracking-[0.14em] text-white"
+              >
+                <span className="flex items-center gap-2">
+                  <Radio size={16} />
+                  Watch live
+                </span>
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping bg-white opacity-70" />
+                  <span className="relative inline-flex h-2.5 w-2.5 bg-white" />
+                </span>
+              </Link>
+            ) : null}
             {navItems.map((item) => (
               <Link
                 key={item.href}
