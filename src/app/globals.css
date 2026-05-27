@@ -1,8 +1,18 @@
 @import "tailwindcss";
+@import "@vidstack/react/player/styles/base.css";
+@import "@vidstack/react/player/styles/default/theme.css";
+@import "@vidstack/react/player/styles/default/layouts/video.css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #050505;
+  --foreground: #f7f7f7;
+  --panel: #101010;
+  --panel-strong: #151515;
+  --line: rgba(255, 255, 255, 0.1);
+  --muted: #a1a1aa;
+  --brand-red: #e1252b;
+  --brand-red-dark: #9f1218;
+  --brand-gold: #d7b46a;
 }
 
 @theme inline {
@@ -12,15 +22,229 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+  color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  margin: 0;
+  background:
+    linear-gradient(180deg, rgba(225, 37, 43, 0.08), transparent 240px),
+    var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  text-rendering: geometricPrecision;
+}
+
+::selection {
+  background: var(--brand-red);
+  color: white;
+}
+
+a {
+  text-decoration: none;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-link {
+  @apply text-xs font-bold uppercase text-zinc-300 transition hover:text-white;
+  letter-spacing: 0.14em;
+}
+
+.icon-button {
+  @apply inline-flex h-11 w-11 items-center justify-center border border-white/15 bg-white/[0.04] text-white transition hover:border-[#e1252b] hover:bg-[#e1252b];
+}
+
+.primary-button,
+.secondary-button,
+.mini-button {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 border px-5 py-3 text-sm font-black uppercase transition;
+  letter-spacing: 0.08em;
+}
+
+.primary-button {
+  @apply border-[#e1252b] bg-[#e1252b] text-white hover:border-[#b5171c] hover:bg-[#b5171c];
+}
+
+.secondary-button {
+  @apply border-white/20 bg-white/[0.04] text-white hover:border-[#d7b46a] hover:text-[#d7b46a];
+}
+
+.mini-button {
+  @apply min-h-9 border-[#d7b46a] px-3 py-2 text-xs text-[#d7b46a] hover:bg-[#d7b46a] hover:text-black;
+}
+
+.text-link {
+  @apply text-sm font-black uppercase text-[#d7b46a] transition hover:text-white;
+  letter-spacing: 0.1em;
+}
+
+.section-shell {
+  @apply mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8;
+}
+
+.section-heading {
+  @apply mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between;
+}
+
+.section-kicker {
+  @apply text-xs font-black uppercase text-[#e1252b];
+  letter-spacing: 0.18em;
+}
+
+.section-title-tight {
+  @apply mt-2 max-w-3xl text-3xl font-black uppercase leading-[0.98] text-white sm:text-4xl lg:text-5xl;
+}
+
+.hero-title {
+  @apply max-w-4xl text-4xl font-black uppercase leading-[0.94] text-white sm:text-6xl lg:text-7xl;
+}
+
+.eyebrow {
+  @apply inline-flex min-h-8 items-center gap-2 border border-white/15 bg-black/65 px-3 py-2 text-xs font-black uppercase text-zinc-100;
+  letter-spacing: 0.13em;
+}
+
+.tag {
+  @apply inline-flex items-center gap-2 border border-white/15 bg-white/[0.04] px-3 py-2 text-xs font-bold uppercase text-zinc-300;
+  letter-spacing: 0.11em;
+}
+
+.stat-box {
+  @apply border border-white/10 bg-white/[0.04] p-3;
+}
+
+.stat-box span {
+  @apply block text-[10px] font-bold uppercase text-zinc-500;
+  letter-spacing: 0.13em;
+}
+
+.stat-box strong {
+  @apply mt-1 block text-base font-black uppercase text-white;
+}
+
+.event-card,
+.news-lead,
+.video-card,
+.fighter-panel,
+.fighter-card-horizontal,
+.info-panel,
+.media-row {
+  @apply border border-white/10 bg-[#101010] shadow-[0_18px_50px_rgba(0,0,0,0.22)];
+}
+
+.event-card,
+.news-lead,
+.video-card,
+.fighter-panel,
+.fighter-card-horizontal {
+  @apply overflow-hidden;
+}
+
+.fighter-card-horizontal {
+  @apply grid md:grid-cols-[0.58fr_1fr];
+}
+
+.fighter-panel {
+  @apply bg-[#0c0c0c];
+}
+
+.media-row {
+  @apply flex gap-4 p-3 transition hover:border-[#e1252b];
+}
+
+.clamp-1,
+.clamp-2,
+.clamp-3,
+.clamp-4 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.clamp-1 {
+  -webkit-line-clamp: 1;
+}
+
+.clamp-2 {
+  -webkit-line-clamp: 2;
+}
+
+.clamp-3 {
+  -webkit-line-clamp: 3;
+}
+
+.clamp-4 {
+  -webkit-line-clamp: 4;
+}
+
+.video-card {
+  @apply flex h-full flex-col;
+}
+
+.video-card-body {
+  @apply flex min-h-[210px] flex-1 flex-col p-4 sm:p-5;
+}
+
+.nara-player[data-media-player] {
+  --video-brand: #e1252b;
+  --video-focus-ring-color: rgba(225, 37, 43, 0.7);
+  --video-controls-color: #ffffff;
+  --video-font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(225, 37, 43, 0.14), transparent 36%),
+    #000;
+  color: #fff;
+}
+
+.nara-player media-provider,
+.nara-player media-outlet,
+.nara-player video {
+  width: 100%;
+  height: 100%;
+}
+
+.nara-player video {
+  object-fit: contain;
+}
+
+.info-panel {
+  @apply grid gap-3 p-5;
+}
+
+.info-panel h3 {
+  @apply text-lg font-black uppercase text-white;
+}
+
+.info-panel p {
+  @apply text-sm leading-7 text-zinc-400;
+}
+
+@media (max-width: 640px) {
+  .hero-title {
+    @apply text-4xl;
+  }
+
+  .primary-button,
+  .secondary-button {
+    @apply w-full;
+  }
+
+  .media-row {
+    @apply grid;
+  }
+
+  .media-row > div:first-child {
+    @apply h-40 w-full;
+  }
 }
