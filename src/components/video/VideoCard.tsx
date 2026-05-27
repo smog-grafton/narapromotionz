@@ -14,24 +14,24 @@ export function VideoCard({ video, priority = false, compact = false }: Props) {
   const premiumLabel = video.access_type === "ppv" ? (video.formatted_price ?? "Premium") : video.requires_subscription || video.access_type === "subscription" ? "Subscriber" : video.is_premium ? "Premium" : null;
 
   return (
-    <Link href={`/videos/${video.slug}`} className={`video-card group transition hover:border-[#e1252b] ${compact ? "max-sm:grid max-sm:grid-cols-[126px_1fr]" : ""}`}>
-      <div className={`relative aspect-video overflow-hidden bg-[#171717] ${compact ? "max-sm:aspect-auto max-sm:min-h-[118px]" : ""}`}>
+    <Link href={`/videos/${video.slug}`} className={`video-card group transition hover:border-[#e1252b] ${compact ? "max-xl:grid max-xl:grid-cols-[170px_1fr] max-sm:grid-cols-[112px_1fr]" : ""}`}>
+      <div className={`relative aspect-video overflow-hidden bg-[#171717] ${compact ? "max-xl:aspect-auto max-xl:min-h-[132px] max-sm:min-h-[112px]" : ""}`}>
         <SafeImage
           src={video.thumbnail_url}
           fallbackSrc="/assets/images/videos/video1.webp"
           alt={video.title}
           fill
           priority={priority}
-          sizes={compact ? "(min-width: 640px) 280px, 126px" : "(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"}
+          sizes={compact ? "(min-width: 1280px) 25vw, (min-width: 640px) 170px, 112px" : "(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"}
           className="object-cover transition duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent" />
-        <div className="absolute inset-0 flex items-center justify-center opacity-95 transition group-hover:opacity-100">
+        <div className="absolute inset-0 flex items-center justify-center opacity-95 transition group-hover:opacity-100 max-sm:hidden">
           <span className="grid h-10 w-10 place-items-center border border-white/35 bg-black/70 text-white sm:h-12 sm:w-12">
             <PlayCircle size={compact ? 20 : 24} />
           </span>
         </div>
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2 max-sm:left-2 max-sm:top-2">
           <span className="bg-[#e1252b] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white">
             {video.category ?? video.video_type ?? "Video"}
           </span>
@@ -40,7 +40,7 @@ export function VideoCard({ video, priority = false, compact = false }: Props) {
           ) : null}
         </div>
         {video.duration ? (
-          <span className="absolute bottom-3 right-3 bg-black/80 px-2 py-1 text-xs font-black text-white">{video.duration}</span>
+          <span className="absolute bottom-3 right-3 bg-black/80 px-2 py-1 text-xs font-black text-white max-sm:bottom-2 max-sm:right-2 max-sm:text-[10px]">{video.duration}</span>
         ) : null}
       </div>
 

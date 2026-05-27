@@ -46,7 +46,7 @@ export function MediaGrid({ news = [], breaking = [], trending = [], previews = 
         </Link>
       </div>
 
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-3">
           {tabs.map((tab) => (
             <button
@@ -62,11 +62,11 @@ export function MediaGrid({ news = [], breaking = [], trending = [], previews = 
         <div className="grid gap-3">
           {selectedTab?.type === "video"
             ? (selectedTab.items as Video[]).map((video) => <VideoCard key={video.id} video={video} compact />)
-            : (selectedTab?.items as NewsArticle[]).map((article) => <NewsCard key={article.id} article={article} />)}
+            : (selectedTab?.items as NewsArticle[]).map((article) => <NewsCard key={article.id} article={article} variant="row" />)}
         </div>
       </div>
 
-      <div className="hidden gap-6 md:grid lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="hidden gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="grid gap-6">
           {lead ? <NewsCard article={lead} variant="feature" /> : null}
           <div className="grid gap-4">
@@ -144,7 +144,7 @@ export function MediaGrid({ news = [], breaking = [], trending = [], previews = 
               Watch more
             </Link>
           </div>
-          <div className="grid items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid items-stretch gap-4 xl:grid-cols-4">
             {videos.slice(1, 5).map((video) => (
               <VideoCard key={video.id} video={video} compact />
             ))}

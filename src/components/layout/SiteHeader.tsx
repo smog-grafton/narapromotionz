@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CreditCard, LayoutDashboard, LogOut, Menu, Ticket, User, UserCircle, X } from "lucide-react";
+import { CreditCard, LayoutDashboard, LogOut, Menu, Ticket, UserCircle, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -126,15 +127,19 @@ export function SiteHeader() {
                 aria-expanded={accountOpen}
                 onClick={() => setAccountOpen((value) => !value)}
               >
-                {user?.avatar_url ? (
-                  <Image src={user.avatar_url} alt="" width={26} height={26} className="h-7 w-7 object-cover" />
-                ) : (
-                  <span className="text-xs font-black uppercase text-white">{initials || <User size={18} />}</span>
-                )}
+                <span className="relative grid h-7 w-7 place-items-center overflow-hidden">
+                  {user?.avatar_url ? (
+                    <SafeImage src={user.avatar_url} fallbackSrc="/images/default-user.svg" alt="" width={28} height={28} className="h-7 w-7 object-cover" />
+                  ) : initials ? (
+                    <span className="grid h-7 w-7 place-items-center bg-[#111] text-xs font-black uppercase text-white">{initials}</span>
+                  ) : (
+                    <Image src="/images/default-user.svg" alt="" width={28} height={28} className="h-7 w-7 object-cover" />
+                  )}
+                </span>
               </button>
             ) : (
               <Link href={accountHref} className="icon-button" aria-label="Account access">
-                <User size={18} />
+                <Image src="/images/default-user.svg" alt="" width={24} height={24} className="h-6 w-6 object-cover" />
               </Link>
             )}
 
