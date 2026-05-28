@@ -1,32 +1,59 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { LiveNowBanner } from "@/components/live/LiveNowBanner";
+import { getBrandFromHost } from "@/lib/brand";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_FRONTEND_URL ?? "http://localhost:3000";
+export async function generateMetadata(): Promise<Metadata> {
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const brand = getBrandFromHost(host);
+  const fallbackSiteUrl = process.env.NEXT_PUBLIC_FRONTEND_URL ?? "http://localhost:3000";
+  const resolvedSiteUrl = host ? `https://${host.split(",")[0].trim()}` : fallbackSiteUrl;
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: "Nara Promotionz | Boxing Events, News, Tickets and Live Streams",
-  description:
-    "Nara Promotionz is a premium Ugandan boxing promotions platform for live events, PPV streaming, boxer profiles, tickets, videos, and boxing news.",
-};
+  return {
+    metadataBase: new URL(resolvedSiteUrl),
+    title: brand.defaultTitle,
+    description: brand.defaultDescription,
+    icons: {
+      icon: brand.faviconPath,
+      shortcut: brand.faviconPath,
+      apple: brand.faviconPath,
+    },
+    openGraph: {
+      title: brand.defaultTitle,
+      description: brand.defaultDescription,
+      url: resolvedSiteUrl,
+      siteName: brand.displayName,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: brand.defaultTitle,
+      description: brand.defaultDescription,
+    },
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const brand = getBrandFromHost(host);
+
   return (
     <html lang="en" className="h-full" data-scroll-behavior="smooth">
       <body className="min-h-full bg-black text-white antialiased">
         <AuthProvider>
-          <SiteHeader />
+          <SiteHeader initialBrand={brand} />
           <LiveNowBanner />
           <main>{children}</main>
-          <SiteFooter />
+          <SiteFooter brand={brand} />
         </AuthProvider>
       </body>
     </html>

@@ -1,14 +1,3 @@
-import {
-  fallbackBoxerDetail,
-  fallbackBoxers,
-  fallbackEvents,
-  fallbackHome,
-  fallbackNews,
-  fallbackNewsDetail,
-  fallbackStream,
-  fallbackVideoDetail,
-  fallbackVideos,
-} from "@/services/fallback";
 import type {
   Boxer,
   BoxerDetailPayload,
@@ -70,7 +59,27 @@ async function apiGetEnvelope<T>(path: string, token?: string): Promise<ApiEnvel
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    const bodyText = await response.text().catch(() => "");
+    let message = `API request failed (${response.status})`;
+
+    try {
+      const parsed = JSON.parse(bodyText || "{}") as {
+        message?: string;
+        error?: string;
+        errors?: Record<string, string[]>;
+      };
+      message =
+        parsed.message ||
+        parsed.error ||
+        Object.values(parsed.errors ?? {})?.flat()?.[0] ||
+        message;
+    } catch {
+      if (bodyText.trim()) {
+        message = `${message}: ${bodyText.trim()}`;
+      }
+    }
+
+    throw new Error(message);
   }
 
   const json = (await response.json()) as ApiEnvelope<T>;
@@ -83,31 +92,11 @@ async function apiGet<T>(path: string, token?: string): Promise<T> {
 }
 
 export async function getHome(): Promise<HomePayload> {
-  try {
-    return await apiGet<HomePayload>("/home");
-  } catch {
-    return fallbackHome;
-  }
+  return apiGet<HomePayload>("/home");
 }
 
 export async function getStream(eventSlug: string, token?: string): Promise<StreamPayload> {
-  try {
-    return await apiGet<StreamPayload>(`/events/${eventSlug}/stream`, token);
-  } catch {
-    return {
-      ...fallbackStream,
-      status: "unavailable",
-      access: {
-        ...fallbackStream.access,
-        authenticated: Boolean(token),
-        reason: token ? "stream_unavailable" : "login_required",
-        requires_payment: !token,
-        message: token
-          ? "We could not open this stream yet. Check the event details or try again in a moment."
-          : "Sign in to access your tickets, live events, replays, and fight-night rewards.",
-      },
-    };
-  }
+  return apiGet<StreamPayload>(`/events/${eventSlug}/stream`, token);
 }
 
 export async function getActiveStream(token?: string): Promise<{ event: Pick<Event, "id" | "name" | "slug"> | null; stream: StreamPayload }> {
@@ -127,11 +116,7 @@ export async function postLiveStreamComment(eventSlug: string, body: string, tok
 }
 
 export async function getFeaturedBoxers(limit = 4): Promise<Boxer[]> {
-  try {
-    return await apiGet<Boxer[]>(`/boxers/featured?limit=${limit}`);
-  } catch {
-    return fallbackBoxers.slice(0, limit);
-  }
+  return apiGet<Boxer[]>(`/boxers/featured?limit=${limit}`);
 }
 
 export async function getBoxers(params: Record<string, string | number | undefined> = {}): Promise<Paginated<Boxer>> {
@@ -143,37 +128,20 @@ export async function getBoxers(params: Record<string, string | number | undefin
     }
   });
 
-  try {
-    const envelope = await apiGetEnvelope<Boxer[]>(`/boxers${query.size ? `?${query}` : ""}`);
-    return {
-      data: envelope.data,
-      links: envelope.links,
-      meta: envelope.meta,
-    };
-  } catch {
-    return { data: fallbackBoxers, meta: { total: fallbackBoxers.length, current_page: 1, last_page: 1 } };
-  }
+  const envelope = await apiGetEnvelope<Boxer[]>(`/boxers${query.size ? `?${query}` : ""}`);
+  return {
+    data: envelope.data,
+    links: envelope.links,
+    meta: envelope.meta,
+  };
 }
 
 export async function getBoxer(slug: string): Promise<BoxerDetailPayload> {
-  try {
-    return await apiGet<BoxerDetailPayload>(`/boxers/${slug}`);
-  } catch {
-    return fallbackBoxerDetail(slug);
-  }
+  return apiGet<BoxerDetailPayload>(`/boxers/${slug}`);
 }
 
 export async function getRankings(): Promise<RankingsPayload> {
-  try {
-    return await apiGet<RankingsPayload>("/rankings");
-  } catch {
-    return [
-      {
-        division: "Featured",
-        boxers: fallbackBoxers,
-      },
-    ];
-  }
+  return apiGet<RankingsPayload>("/rankings");
 }
 
 export async function getEvents(params: Record<string, string | number | undefined> = {}): Promise<Paginated<Event>> {
@@ -185,32 +153,20 @@ export async function getEvents(params: Record<string, string | number | undefin
     }
   });
 
-  try {
-    const envelope = await apiGetEnvelope<Event[]>(`/events${query.size ? `?${query}` : ""}`);
-    return {
-      data: envelope.data,
-      links: envelope.links,
-      meta: envelope.meta,
-    };
-  } catch {
-    return { data: fallbackEvents, meta: { total: fallbackEvents.length, current_page: 1, last_page: 1 } };
-  }
+  const envelope = await apiGetEnvelope<Event[]>(`/events${query.size ? `?${query}` : ""}`);
+  return {
+    data: envelope.data,
+    links: envelope.links,
+    meta: envelope.meta,
+  };
 }
 
 export async function getActiveLiveEvents(limit = 3): Promise<Event[]> {
-  try {
-    return await apiGet<Event[]>(`/live/active?limit=${limit}&summary=1`);
-  } catch {
-    return fallbackEvents.filter((event) => event.status === "live" || event.streaming?.status === "live").slice(0, limit);
-  }
+  return apiGet<Event[]>(`/live/active?limit=${limit}&summary=1`);
 }
 
 export async function getEvent(slug: string): Promise<Event> {
-  try {
-    return await apiGet<Event>(`/events/${slug}`);
-  } catch {
-    return fallbackEvents.find((event) => event.slug === slug) ?? fallbackEvents[0];
-  }
+  return apiGet<Event>(`/events/${slug}`);
 }
 
 export async function getNews(params: Record<string, string | number | undefined> = {}): Promise<Paginated<NewsArticle>> {
@@ -222,67 +178,36 @@ export async function getNews(params: Record<string, string | number | undefined
     }
   });
 
-  try {
-    const envelope = await apiGetEnvelope<NewsArticle[]>(`/news${query.size ? `?${query}` : ""}`);
-    return {
-      data: envelope.data,
-      links: envelope.links,
-      meta: envelope.meta,
-    };
-  } catch {
-    return { data: fallbackNews, meta: { total: fallbackNews.length, current_page: 1, last_page: 1 } };
-  }
+  const envelope = await apiGetEnvelope<NewsArticle[]>(`/news${query.size ? `?${query}` : ""}`);
+  return {
+    data: envelope.data,
+    links: envelope.links,
+    meta: envelope.meta,
+  };
 }
 
 export async function getFeaturedNews(limit = 8): Promise<NewsArticle[]> {
-  try {
-    return await apiGet<NewsArticle[]>(`/news/featured?limit=${limit}`);
-  } catch {
-    return fallbackNews.slice(0, limit);
-  }
+  return apiGet<NewsArticle[]>(`/news/featured?limit=${limit}`);
 }
 
 export async function getBreakingNews(limit = 8): Promise<NewsArticle[]> {
-  try {
-    return await apiGet<NewsArticle[]>(`/news/breaking?limit=${limit}`);
-  } catch {
-    return fallbackNews.filter((article) => article.is_breaking).slice(0, limit);
-  }
+  return apiGet<NewsArticle[]>(`/news/breaking?limit=${limit}`);
 }
 
 export async function getTrendingNews(limit = 10): Promise<NewsArticle[]> {
-  try {
-    return await apiGet<NewsArticle[]>(`/news/trending?limit=${limit}`);
-  } catch {
-    return fallbackNews.slice(0, limit);
-  }
+  return apiGet<NewsArticle[]>(`/news/trending?limit=${limit}`);
 }
 
 export async function getNewsCategories(): Promise<TaxonomyItem[]> {
-  try {
-    return await apiGet<TaxonomyItem[]>("/news/categories");
-  } catch {
-    return [
-      { id: 1, name: "News", slug: "news" },
-      { id: 2, name: "Features", slug: "features" },
-    ];
-  }
+  return apiGet<TaxonomyItem[]>("/news/categories");
 }
 
 export async function getNewsTags(): Promise<TaxonomyItem[]> {
-  try {
-    return await apiGet<TaxonomyItem[]>("/news/tags");
-  } catch {
-    return [];
-  }
+  return apiGet<TaxonomyItem[]>("/news/tags");
 }
 
 export async function getNewsArticle(slug: string): Promise<NewsDetailPayload> {
-  try {
-    return await apiGet<NewsDetailPayload>(`/news/${slug}`);
-  } catch {
-    return fallbackNewsDetail(slug);
-  }
+  return apiGet<NewsDetailPayload>(`/news/${slug}`);
 }
 
 export async function getVideos(params: Record<string, string | number | undefined> = {}): Promise<Paginated<Video>> {
@@ -294,24 +219,16 @@ export async function getVideos(params: Record<string, string | number | undefin
     }
   });
 
-  try {
-    const envelope = await apiGetEnvelope<Video[]>(`/videos${query.size ? `?${query}` : ""}`);
-    return {
-      data: envelope.data,
-      links: envelope.links,
-      meta: envelope.meta,
-    };
-  } catch {
-    return { data: fallbackVideos, meta: { total: fallbackVideos.length, current_page: 1, last_page: 1 } };
-  }
+  const envelope = await apiGetEnvelope<Video[]>(`/videos${query.size ? `?${query}` : ""}`);
+  return {
+    data: envelope.data,
+    links: envelope.links,
+    meta: envelope.meta,
+  };
 }
 
 export async function getVideo(slug: string, token?: string): Promise<VideoDetailPayload> {
-  try {
-    return await apiGet<VideoDetailPayload>(`/videos/${slug}`, token);
-  } catch {
-    return fallbackVideoDetail(slug);
-  }
+  return apiGet<VideoDetailPayload>(`/videos/${slug}`, token);
 }
 
 async function apiPost<T>(path: string, body: Record<string, unknown>, token?: string): Promise<T> {

@@ -37,6 +37,16 @@ const nextConfig: NextConfig = {
       ...localLaravelPatterns,
       {
         protocol: "https",
+        hostname: "portal.narapromotionz.com",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "https",
+        hostname: "portal.narapromotionz.com",
+        pathname: "/assets/**",
+      },
+      {
+        protocol: "https",
         hostname: "www.narapromotionz.com",
         pathname: "/storage/**",
       },

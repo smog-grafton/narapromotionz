@@ -7,9 +7,10 @@ import { imageUrl } from "@/lib/utils";
 type Props = Omit<ImageProps, "src"> & {
   src?: string | null;
   fallbackSrc: string;
+  allowFallbackOnError?: boolean;
 };
 
-export function SafeImage({ src, fallbackSrc, alt, onError, ...props }: Props) {
+export function SafeImage({ src, fallbackSrc, alt, onError, allowFallbackOnError = false, ...props }: Props) {
   const [currentSrc, setCurrentSrc] = useState(imageUrl(src, fallbackSrc));
 
   return (
@@ -18,7 +19,7 @@ export function SafeImage({ src, fallbackSrc, alt, onError, ...props }: Props) {
       src={currentSrc}
       alt={alt}
       onError={(event) => {
-        if (currentSrc !== fallbackSrc) {
+        if (allowFallbackOnError && currentSrc !== fallbackSrc) {
           setCurrentSrc(fallbackSrc);
         }
         onError?.(event);

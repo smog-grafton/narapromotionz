@@ -7,6 +7,7 @@ import { CreditCard, LayoutDashboard, LogOut, Menu, Radio, Ticket, UserCircle, X
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { SafeImage } from "@/components/ui/SafeImage";
+import { getBrandFromHost, type SiteBrand } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 import { getActiveLiveEvents } from "@/services/api";
 import type { Event as PlatformEvent } from "@/types/platform";
@@ -21,7 +22,14 @@ const navItems = [
   { href: "/tickets", label: "Tickets" },
 ];
 
-export function SiteHeader() {
+type Props = {
+  initialBrand: SiteBrand;
+};
+
+export function SiteHeader({ initialBrand }: Props) {
+  const [brand] = useState(() =>
+    typeof window === "undefined" ? initialBrand : getBrandFromHost(window.location.hostname),
+  );
   const [open, setOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [liveEvent, setLiveEvent] = useState<PlatformEvent | null>(null);
@@ -133,8 +141,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070707]/95 backdrop-blur">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3" aria-label="Nara Promotionz home">
-          <Image src="/assets/images/logo.svg" alt="Nara Promotionz" width={154} height={44} priority className="h-auto w-[154px]" />
+        <Link href="/" className="flex items-center gap-3" aria-label={`${brand.displayName} home`}>
+          <Image src={brand.headerLogo} alt={brand.displayName} width={154} height={44} priority className="h-auto w-[154px]" />
         </Link>
 
         <nav className="hidden items-center gap-7 lg:flex" aria-label="Primary navigation">
@@ -169,7 +177,7 @@ export function SiteHeader() {
               >
                 <span className="relative grid h-7 w-7 place-items-center overflow-hidden">
                   {user?.avatar_url ? (
-                    <SafeImage src={user.avatar_url} fallbackSrc="/images/default-user.svg" alt="" width={28} height={28} className="h-7 w-7 object-cover" />
+                    <SafeImage src={user.avatar_url} fallbackSrc="/images/default-user.svg" allowFallbackOnError alt="" width={28} height={28} className="h-7 w-7 object-cover" />
                   ) : initials ? (
                     <span className="grid h-7 w-7 place-items-center bg-[#111] text-xs font-black uppercase text-white">{initials}</span>
                   ) : (
@@ -269,7 +277,7 @@ export function SiteHeader() {
           )}
         >
           <div className="flex items-center justify-between">
-            <Image src="/assets/images/logo-2.svg" alt="Nara Promotionz" width={138} height={38} className="h-auto w-[138px]" />
+            <Image src={brand.mobileLogo} alt={brand.displayName} width={138} height={38} className="h-auto w-[138px]" />
             <button className="icon-button" onClick={() => setOpen(false)} aria-label="Close menu">
               <X size={20} />
             </button>

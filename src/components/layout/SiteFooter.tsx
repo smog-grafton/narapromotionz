@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
+import type { SiteBrand } from "@/lib/brand";
 
 const columns = [
   {
@@ -35,14 +36,18 @@ const columns = [
   },
 ];
 
-export function SiteFooter() {
+type Props = {
+  brand: SiteBrand;
+};
+
+export function SiteFooter({ brand }: Props) {
   return (
     <footer className="border-t border-white/10 bg-[#050505]">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.2fr_1.8fr] lg:px-8">
         <div>
-          <Image src="/assets/images/logo-2.svg" alt="Nara Promotionz" width={176} height={52} />
+          <Image src={brand.footerLogo} alt={brand.displayName} width={176} height={52} />
           <p className="mt-5 max-w-md text-sm leading-7 text-zinc-400">
-            Nara Promotionz is building Uganda&apos;s premium boxing promotions platform for live events, PPV streaming,
+            {brand.displayName} is building Uganda&apos;s premium boxing promotions platform for live events, PPV streaming,
             professional boxer profiles, fight-night media, and official ticket-holder rewards.
           </p>
           <div className="mt-6 grid gap-3 text-sm text-zinc-300">
@@ -77,7 +82,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-white/10 px-4 py-5 text-center text-xs uppercase tracking-[0.18em] text-zinc-500">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 sm:flex-row">
-          <span>© {new Date().getFullYear()} Nara Promotionz. Nara Group of Companies.</span>
+          <span>© {new Date().getFullYear()} {brand.displayName}. Nara Group of Companies.</span>
           <span className="flex flex-wrap justify-center gap-4">
             <Link href="/privacy-policy" className="hover:text-white">Privacy</Link>
             <Link href="/terms" className="hover:text-white">Terms</Link>

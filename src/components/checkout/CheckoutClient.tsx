@@ -12,39 +12,6 @@ import { money } from "@/lib/utils";
 
 type Gateway = "flutterwave" | "iotec";
 
-const fallbackGateways: PaymentGateway[] = [
-  {
-    id: 1,
-    code: "iotec",
-    name: "ioTec",
-    display_name: "Mobile Money",
-    description: "Pay quickly with mobile money and unlock your fight-night pass.",
-    status: "active",
-    is_default: true,
-    supports_mobile_money: true,
-    supports_card: false,
-    supports_redirect_checkout: false,
-    supported_currencies: ["UGX"],
-    public_label: "Recommended",
-    button_label: "Pay with Mobile Money",
-    instructions: "Confirm the mobile money prompt on your phone to complete your ticket.",
-  },
-  {
-    id: 2,
-    code: "flutterwave",
-    name: "Flutterwave",
-    display_name: "Card & Mobile Money",
-    description: "Pay securely with card or mobile money through Flutterwave.",
-    status: "active",
-    is_default: false,
-    supports_mobile_money: true,
-    supports_card: true,
-    supports_redirect_checkout: true,
-    supported_currencies: ["UGX", "USD"],
-    button_label: "Continue to Flutterwave",
-  },
-];
-
 export function CheckoutClient({ event }: { event: Event }) {
   const tickets = useMemo(() => (event.tickets ?? []).filter((ticket) => ticket.is_available), [event.tickets]);
   const search = useSearchParams();
@@ -53,7 +20,7 @@ export function CheckoutClient({ event }: { event: Event }) {
   const initialCoupon = search.get("coupon") ?? search.get("ref") ?? "";
   const [ticketId, setTicketId] = useState<number | undefined>(initialTicket);
   const [gateway, setGateway] = useState<Gateway>("iotec");
-  const [gateways, setGateways] = useState<PaymentGateway[]>(fallbackGateways);
+  const [gateways, setGateways] = useState<PaymentGateway[]>([]);
   const [phone, setPhone] = useState("");
   const [couponCode, setCouponCode] = useState(initialCoupon);
   const [busy, setBusy] = useState(false);
@@ -69,15 +36,17 @@ export function CheckoutClient({ event }: { event: Event }) {
 
     getPaymentGateways()
       .then((items) => {
-        if (cancelled || !items.length) return;
+        if (cancelled) return;
         setGateways(items);
-        const defaultGateway = items.find((item) => item.is_default) ?? items[0];
+        const defaultGateway = items.find((item) => item.is_default) ?? items[0] ?? null;
         if (defaultGateway?.code === "iotec" || defaultGateway?.code === "flutterwave") {
           setGateway(defaultGateway.code);
         }
       })
-      .catch(() => {
-        if (!cancelled) setGateways(fallbackGateways);
+      .catch((caught) => {
+        if (!cancelled) {
+          setError(caught instanceof Error ? caught.message : "Payment gateways could not be loaded.");
+        }
       });
 
     return () => {
@@ -234,6 +203,7 @@ export function CheckoutClient({ event }: { event: Event }) {
             );
           })}
         </div>
+        {!gateways.length ? <div className="border border-white/10 bg-black p-5 text-sm text-zinc-400">No active payment gateways are currently available.</div> : null}
 
         {gateway === "iotec" ? (
           <label className="grid gap-2 text-sm font-bold text-zinc-300">
@@ -256,7 +226,7 @@ export function CheckoutClient({ event }: { event: Event }) {
         {message ? <div className="border border-[#d7b46a]/50 bg-[#d7b46a]/10 p-3 text-sm font-bold text-[#d7b46a]">{message}</div> : null}
         {error ? <div className="border border-[#e1252b]/50 bg-[#e1252b]/10 p-3 text-sm font-bold text-white">{error}</div> : null}
 
-        <button type="submit" className="primary-button w-full justify-center" disabled={busy || !tickets.length}>
+        <button type="submit" className="primary-button w-full justify-center" disabled={busy || !tickets.length || !selectedGateway}>
           {busy ? <Loader2 className="animate-spin" size={18} /> : <ShieldCheck size={18} />}
           {busy ? "Confirming..." : "Secure my fight-night pass"}
         </button>

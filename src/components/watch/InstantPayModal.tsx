@@ -19,41 +19,10 @@ type Props = {
 type Gateway = "iotec" | "flutterwave";
 type Product = { kind: "ticket"; ticket: TicketType } | { kind: "subscription"; plan: SubscriptionPlan };
 
-const fallbackGateways: PaymentGateway[] = [
-  {
-    id: 1,
-    code: "iotec",
-    name: "ioTec",
-    display_name: "Mobile Money",
-    description: "Pay quickly with mobile money and unlock your fight-night pass.",
-    status: "active",
-    is_default: true,
-    supports_mobile_money: true,
-    supports_card: false,
-    supports_redirect_checkout: false,
-    supported_currencies: ["UGX"],
-    public_label: "Recommended",
-    button_label: "Pay with Mobile Money",
-  },
-  {
-    id: 2,
-    code: "flutterwave",
-    name: "Flutterwave",
-    display_name: "Card & Mobile Money",
-    description: "Pay securely with Flutterwave.",
-    status: "active",
-    is_default: false,
-    supports_mobile_money: true,
-    supports_card: true,
-    supports_redirect_checkout: true,
-    supported_currencies: ["UGX", "USD"],
-  },
-];
-
 export function InstantPayModal({ eventSlug, access, open, onClose }: Props) {
   const { token, loading } = useAuth();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [gateways, setGateways] = useState<PaymentGateway[]>(fallbackGateways);
+  const [gateways, setGateways] = useState<PaymentGateway[]>([]);
   const [gateway, setGateway] = useState<Gateway>("iotec");
   const [selectedKey, setSelectedKey] = useState<string>("");
   const [phone, setPhone] = useState("");
@@ -67,18 +36,20 @@ export function InstantPayModal({ eventSlug, access, open, onClose }: Props) {
 
     let cancelled = false;
 
-    Promise.all([
-      getSubscriptionPlans().catch(() => []),
-      getPaymentGateways().catch(() => fallbackGateways),
-    ]).then(([planItems, gatewayItems]) => {
-      if (cancelled) return;
-      setPlans(planItems);
-      setGateways(gatewayItems.length ? gatewayItems : fallbackGateways);
-      const firstGateway = (gatewayItems.length ? gatewayItems : fallbackGateways).find((item) => item.is_default) ?? (gatewayItems.length ? gatewayItems : fallbackGateways)[0];
-      if (firstGateway?.code === "iotec" || firstGateway?.code === "flutterwave") {
-        setGateway(firstGateway.code);
-      }
-    });
+    Promise.all([getSubscriptionPlans(), getPaymentGateways()])
+      .then(([planItems, gatewayItems]) => {
+        if (cancelled) return;
+        setPlans(planItems);
+        setGateways(gatewayItems);
+        const firstGateway = gatewayItems.find((item) => item.is_default) ?? gatewayItems[0] ?? null;
+        if (firstGateway?.code === "iotec" || firstGateway?.code === "flutterwave") {
+          setGateway(firstGateway.code);
+        }
+      })
+      .catch((caught) => {
+        if (cancelled) return;
+        setError(caught instanceof Error ? caught.message : "Payment options could not be loaded.");
+      });
 
     return () => {
       cancelled = true;
@@ -249,6 +220,7 @@ export function InstantPayModal({ eventSlug, access, open, onClose }: Props) {
               );
             })}
           </div>
+          {!gateways.length ? <div className="border border-white/10 bg-black p-3 text-sm text-zinc-400">No active payment gateways are currently available.</div> : null}
 
           {gateway === "iotec" ? (
             <label className="grid gap-2 text-sm font-bold text-zinc-300">
@@ -268,7 +240,7 @@ export function InstantPayModal({ eventSlug, access, open, onClose }: Props) {
           {error ? <div className="border border-[#e1252b]/50 bg-[#e1252b]/10 p-3 text-sm font-bold text-white">{error}</div> : null}
 
           {token ? (
-            <button className="primary-button w-full justify-center" disabled={busy || !selectedProduct}>
+            <button className="primary-button w-full justify-center" disabled={busy || !selectedProduct || !gateways.length}>
               {busy ? <Loader2 className="animate-spin" size={18} /> : <Ticket size={18} />}
               {busy ? "Confirming..." : "Unlock access"}
             </button>

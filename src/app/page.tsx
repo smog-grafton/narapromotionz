@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { BoxerSpotlight } from "@/components/home/BoxerSpotlight";
 import { CountdownStrip } from "@/components/home/CountdownStrip";
 import { EventRail } from "@/components/home/EventRail";
@@ -7,14 +8,18 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { MediaGrid } from "@/components/home/MediaGrid";
 import { PlatformBlocks } from "@/components/home/PlatformBlocks";
 import { SponsorStrip } from "@/components/home/SponsorStrip";
+import { getBrandFromHost } from "@/lib/brand";
 import { getFeaturedBoxers, getHome } from "@/services/api";
 
 export async function generateMetadata(): Promise<Metadata> {
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const brand = getBrandFromHost(host);
   const home = await getHome();
 
   return {
-    title: home.seo?.title ?? "Nara Promotionz | Boxing Events, News, Tickets and Live Streams",
-    description: home.seo?.description ?? "Nara Promotionz is a premium Ugandan boxing platform for events, tickets, PPV streams, boxer profiles, and news.",
+    title: home.seo?.title ?? brand.defaultTitle,
+    description: home.seo?.description ?? brand.defaultDescription,
     alternates: home.seo?.canonical ? { canonical: home.seo.canonical } : undefined,
     openGraph: {
       title: home.seo?.title ?? "Nara Promotionz",
