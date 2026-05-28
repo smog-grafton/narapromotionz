@@ -33,6 +33,7 @@ html {
   width: 100%;
   max-width: 100%;
   overflow-x: clip;
+  overscroll-behavior-x: none;
 }
 
 body {
@@ -46,6 +47,24 @@ body {
   width: 100%;
   max-width: 100%;
   overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+
+#__next,
+main,
+section,
+article,
+header,
+footer {
+  max-width: 100%;
+}
+
+img,
+video,
+canvas,
+svg,
+iframe {
+  max-width: 100%;
 }
 
 ::selection {
