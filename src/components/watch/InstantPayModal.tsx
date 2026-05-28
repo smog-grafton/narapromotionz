@@ -140,7 +140,22 @@ export function InstantPayModal({ eventSlug, access, open, onClose }: Props) {
         return;
       }
 
-      if (checkout.requires_polling) {
+      const shouldPoll =
+        checkout.requires_polling === true ||
+        checkout.gateway === "iotec" ||
+        ["processing", "pending"].includes(String(checkout.status).toLowerCase());
+
+      if (String(checkout.status).toLowerCase() === "successful") {
+        window.location.href = `/payments/success?reference=${encodeURIComponent(checkout.transaction_reference)}`;
+        return;
+      }
+
+      if (["failed", "cancelled", "expired"].includes(String(checkout.status).toLowerCase())) {
+        window.location.href = `/payments/failed?reference=${encodeURIComponent(checkout.transaction_reference)}`;
+        return;
+      }
+
+      if (shouldPoll) {
         await poll(checkout.transaction_reference);
         return;
       }
@@ -156,8 +171,8 @@ export function InstantPayModal({ eventSlug, access, open, onClose }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[90] overflow-y-auto bg-black/80 px-4 py-6 backdrop-blur-sm">
-      <div className="mx-auto max-w-3xl border border-white/10 bg-[#101010] shadow-2xl">
+    <div className="fixed inset-0 z-[90] overflow-y-auto overflow-x-hidden bg-black/80 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-6">
+      <div className="mx-auto w-full max-w-3xl overflow-y-auto border border-white/10 bg-[#101010] shadow-2xl max-h-[calc(100dvh-2rem)]">
         <div className="flex items-start justify-between gap-4 border-b border-white/10 p-5">
           <div>
             <p className="section-kicker">Unlock the stream</p>

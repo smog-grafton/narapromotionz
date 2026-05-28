@@ -121,7 +121,22 @@ export function CheckoutClient({ event }: { event: Event }) {
         return;
       }
 
-      if (checkout.requires_polling) {
+      const shouldPoll =
+        checkout.requires_polling === true ||
+        checkout.gateway === "iotec" ||
+        ["processing", "pending"].includes(String(checkout.status).toLowerCase());
+
+      if (String(checkout.status).toLowerCase() === "successful") {
+        router.push(`/payments/success?reference=${encodeURIComponent(checkout.transaction_reference)}`);
+        return;
+      }
+
+      if (["failed", "cancelled", "expired"].includes(String(checkout.status).toLowerCase())) {
+        router.push(`/payments/failed?reference=${encodeURIComponent(checkout.transaction_reference)}`);
+        return;
+      }
+
+      if (shouldPoll) {
         await pollPayment(checkout.transaction_reference, token);
         return;
       }
