@@ -11,10 +11,23 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
+function socialImageUrl(value?: string | null): string | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (!raw.startsWith("/")) return null;
+
+  const base = process.env.NEXT_PUBLIC_BACKEND_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!base) return raw;
+
+  return `${base.replace(/\/$/, "")}${raw}`;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const boxer = (await getBoxer(slug)).profile;
   const description = boxer.seo?.description || stripHtml(boxer.bio || boxer.full_bio) || `${boxer.name} boxer profile, record, ranking, fight history, and upcoming events.`;
+  const ogImage = socialImageUrl(boxer.seo?.og_image ?? boxer.image_url ?? null);
 
   return {
     title: boxer.seo?.title || `${boxer.name} | Boxer Profile | Nara Promotionz`,
@@ -24,13 +37,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "profile",
       title: boxer.seo?.title || `${boxer.name} | Nara Promotionz`,
       description,
-      images: boxer.seo?.og_image || boxer.image_url ? [{ url: boxer.seo?.og_image ?? boxer.image_url!, alt: boxer.name }] : undefined,
+      images: ogImage ? [{ url: ogImage, alt: boxer.name }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title: boxer.seo?.title || `${boxer.name} | Nara Promotionz`,
       description,
-      images: boxer.seo?.og_image || boxer.image_url ? [boxer.seo?.og_image ?? boxer.image_url!] : undefined,
+      images: ogImage ? [ogImage] : undefined,
     },
   };
 }

@@ -11,11 +11,23 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
+function socialImageUrl(value?: string | null): string | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (!raw.startsWith("/")) return null;
+
+  const base = process.env.NEXT_PUBLIC_BACKEND_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!base) return raw;
+
+  return `${base.replace(/\/$/, "")}${raw}`;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const event = await getEvent(slug);
   const description = event.seo?.description || stripHtml(event.description || event.full_description) || `${event.name} boxing event, tickets, fight card, and live stream access.`;
-  const ogImage = event.seo?.og_image ?? event.images?.banner ?? event.images?.poster ?? null;
+  const ogImage = socialImageUrl(event.seo?.og_image ?? event.images?.banner ?? event.images?.poster ?? null);
 
   return {
     title: event.seo?.title || `${event.name} | Nara Promotionz`,
